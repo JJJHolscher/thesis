@@ -19,7 +19,7 @@ project:
 format:
   html:
     theme:
-      dark: darkly
+      dark: [darkly, "../res/darkly.scss"]
       light: flatly
 
 website:

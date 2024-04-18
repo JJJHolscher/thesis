@@ -1,18 +1,25 @@
 ---
 sidebar: false
 page-layout: full
+fig-cap-location: bottom
 lightbox:
     match: auto
     effect: none
 ---
 
+
 # Tech Stack Q&A
 
 <style>
-  .sticky-chunk {
+.sticky-chunk {
     overflow-x: unset !important;
     position: sticky;
     top: 0;
+    text-align: center;
+}
+
+.not-too-heigh {
+    max-height: 95vh;
 }
 </style>
 <script src="../res/dark-images.js"></script>
@@ -159,10 +166,8 @@ Yes, though it is a work in progress. Right now I'm still training various U-NET
 
 ::: {.column width=40% .sticky-chunk}
 
-## Feature-Conditional Diffusion
+![Feature-Conditional Diffusion](../res/tech-stack.light.png){.not-too-heigh}
 
-
-![](../res/tech-stack.light.png){fig-align="right"}
 
 :::
 
