@@ -1,0 +1,9 @@
+## Methodology
+
+### convolutional neural network
+
+
+### sparse autoencoder
+
+### conditional diffusion model
+

@@ -15,3 +15,10 @@ project:
       "!evcxr_pkg/*/Cargo.lock"
     ]
   post-render: "../cmd/quarto.sh post-render"
+
+website:
+  sidebar:
+    search: false
+    contents:
+      - methodology.qmd
+      - experiments.qmd

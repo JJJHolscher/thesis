@@ -1,14 +1,12 @@
 #!/usr/bin/bash
 
-trap 'kill $server_pid; kill $tailwind_pid; exit' INT
+trap 'kill $server_pid; exit' INT
+
+$BROWSER --app="http://localhost:5791"
 
 # serve files
-python -m http.server 5790 &
+python -m http.server 5791 &
 server_pid=$!
-
-# have tailwind watch for changes
-tailwindcss --watch -i widget/src/input.css -o web/tailwind.css &
-tailwind_pid=$!
 
 # have quarto compile to html
 cd doc

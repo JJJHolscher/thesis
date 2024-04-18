@@ -1,5 +1,4 @@
 #!/bin/sh
 
-tailwindcss -i widget/src/input.css -o web/tailwind.css
 cd doc
 quarto render

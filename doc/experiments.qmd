@@ -1,0 +1,79 @@
+## Experiments
+
+### Simple CNN for MNIST
+
+```{mermaid}
+graph LR
+    img([1,28,28]) --- conv
+    conv --- a1
+    a1([3,25,25]) --- max-pool
+    max-pool -- _/ --- a2
+    a2([3,24,24]) --- ravel
+    ravel --- a3
+    a3([1728]) --- a( )
+```
+```{mermaid}
+graph LR
+    a( ) --- linear-1
+    linear-1 -- σ --- a4
+    a4([512]) --- linear-2
+    linear-2 -- _/ --- a5
+    a5([64]) --- linear-3
+    linear-3 -- eˣ/Σeˣ --- a6([10])
+```
+
+### TinyImageNet
+
+- [ ] read the TinyImageNet paper
+- [ ] in what ways do models perform worse on TinyImageNet?
+
+
+#### ConsensusGPT vomit
+
+TinyImageNet is a scaled-down version of the much larger ImageNet dataset, both of which are pivotal in the field of computer vision for training machine learning models, particularly in image classification tasks. Here's a comparison based on their characteristics and use cases:
+
+Size and Complexity:
+
+ImageNet: It's one of the largest datasets available for image classification, containing over 14 million hand-annotated images divided into approximately 22,000 categories. The images in ImageNet are of various sizes and high resolution.
+TinyImageNet: It significantly reduces the scale, containing 100,000 images across 200 classes, with each image resized to a small dimension of 64x64 pixels.
+Computational Requirements:
+
+ImageNet requires considerable computational resources for training due to its size and the complexity of its images. Training models on ImageNet often requires GPUs or even clusters of GPUs to complete in a reasonable amount of time.
+TinyImageNet, with its reduced size and complexity, requires significantly less computational power, making it more accessible for researchers with limited resources, for educational purposes, and for rapid prototyping.
+Use Cases:
+
+ImageNet is used in cutting-edge research for developing state-of-the-art machine learning models in image recognition, capable of understanding intricate and nuanced distinctions between thousands of categories.
+TinyImageNet is often used for educational purposes, allowing students and researchers to experiment with neural network architectures without the need for extensive computational resources. It serves as a testbed for algorithm development and for those new to the field of machine learning.
+Performance Benchmarking:
+
+ImageNet is the benchmark for many competitions and research works in computer vision, where the accuracy of models on this dataset is a key indicator of their performance and sophistication.
+TinyImageNet, while not as widely used as a benchmark in high-profile competitions, offers a simpler benchmarking tool for evaluating the performance of lightweight or less complex models.
+Accessibility:
+
+ImageNet's large size makes it more challenging to download, store, and process.
+TinyImageNet, being much smaller, is easier to download and work with, especially for individuals and organizations with limited storage and computing power.
+In summary, while ImageNet remains the gold standard for training and benchmarking advanced image classification models, TinyImageNet provides a practical alternative for situations requiring lower computational costs, educational purposes, and initial experiments in model development. The choice between the two largely depends on the specific needs, resources, and goals of the project or learning endeavor.
+
+
+
+Models trained on TinyImageNet, due to the dataset's reduced scale and complexity compared to ImageNet, may exhibit certain limitations in capabilities:
+
+Generalization to High-Resolution Images: TinyImageNet images are of low resolution (64x64 pixels), which means models trained on this dataset might struggle with high-resolution images found in real-world applications. ImageNet models, trained on a diverse set of high-resolution images, are better at handling and recognizing details in such images.
+
+Detailed Feature Recognition: The lower resolution and simplified dataset mean that models trained on TinyImageNet might not learn to recognize as detailed features as those trained on ImageNet. The intricate textures, patterns, and object details present in ImageNet's high-resolution images facilitate deeper feature extraction capabilities in models.
+
+Category Breadth and Depth: ImageNet encompasses over 22,000 categories, offering a far more extensive range of objects, scenes, and concepts for models to learn from, compared to TinyImageNet's 200 classes. This broad exposure helps ImageNet-trained models to classify a wider variety of images accurately and with more nuanced understanding.
+
+Robustness and Adaptability: Training on a larger and more complex dataset like ImageNet exposes models to a wider range of lighting conditions, angles, backgrounds, and occlusions, making them more robust and adaptable to different real-world conditions. TinyImageNet-trained models might not exhibit the same level of robustness due to the dataset's limitations.
+
+Fine-Grained Classification: The extensive number of categories in ImageNet, including many subcategories for animals, objects, and scenes, allows for fine-grained classification. Models trained on ImageNet can distinguish between closely related categories (e.g., different dog breeds). TinyImageNet’s limited category set provides less opportunity for learning such fine distinctions.
+
+Transfer Learning and Feature Extraction: While models trained on both datasets can be used for transfer learning, ImageNet models are often more effective as feature extractors for other tasks beyond image classification. The depth and breadth of learned features make ImageNet-trained models more versatile when applied to other domains or tasks.
+
+Real-World Application Performance: Given the aforementioned points, models trained on ImageNet are generally more prepared for direct application to real-world problems, which often involve complex scenes and high-resolution images. Models trained on TinyImageNet may require additional fine-tuning or may only be suitable for applications where the image conditions closely match those of the TinyImageNet dataset.
+
+In summary, while TinyImageNet offers a valuable resource for education, experimentation, and research where computational resources are limited, the capabilities of models trained on this dataset are constrained compared to those trained on ImageNet. These constraints primarily involve generalization, detail recognition, category coverage, and real-world application readiness.
+
+### GoogLeNet for TinyImageNet
+
+

@@ -1,0 +1,152 @@
+---
+sidebar: false
+page-layout: full
+---
+
+# Q&A
+
+<style>
+  .sticky-chunk {
+    overflow-x: unset !important;
+    position: sticky;
+    top: 0;
+}
+</style>
+
+:::: {.columns}
+
+::: {.column width=60%}
+
+I did a thing
+
+> What did you do?
+
+Well, I did two things, but they come down to applying the same technique twice.
+
+> Okay, what's the technique?
+
+It's called "feature-conditional generation" or something like it, the github is called "features2image_diffusion".
+It comes down to using a traditional conditional diffusion model with some other network's activations instead of text embeddings of input text.
+
+> wow okay uh, what does that mean?
+
+Uh, try a different question like "for what purpose"?
+
+> sure, for what purpose?
+
+Interpreting a network's activations.
+The diffusion model generates data points that look like the original dataset.
+If you condition it on the activations, you can see what kind of data the model generates if some activation is exaggerated.
+
+> uhh
+
+See the diagram next to this text.
+
+> uhh
+
+So, we have a CNN on the right which is our target for understanding.
+
+> "target for understandig"?
+
+That which we want to understand.
+
+> go on
+
+There are various facets we can try to comprehend about the CNN. I choose to further understanding about the activations of the model.
+
+> why the activations?
+
+There isn't really a correct answer to this. At the end, we need to understand everything: the weights, the architecture, the role of the nonlinearities and the semantics of the activations.
+I choose the activations since, intuitively, those seem to contain information we might recognise better.
+
+> Why would we recognise information in activations better than in other parts like the weights?
+
+The activations depend on the specific data point that we feed into the CNN. This specific data point is recognisable to us, so that is a nice anchor point on which we can build further understandings.
+
+Weights on the other hand, are constructed during the entire training run and therefore depend on every data point in the set. For us to understand those, we need to find a different point to anchor on, one might anchor on algorithms we might expect the network to implement for example. But those anchors are far less clear and since I believe that nobody has yet succeeded in consistently making good guesses about what kind of algorithms networks implement, we currently don't know what kind anchors are useful for building our understanding upon.
+
+> With "anchor", do you mean some concrete thing we can reference back to when explaining some part of the CNN?
+
+Yes, I explain the activations of the CNN by showing permutations of the original data point that caused those activations. So the data point is the anchor.  
+I also explain the activations in terms of the prediction the CNN makes, that's a second anchor.
+
+> Alright, so you were explaining the diagram that showcases what you did.
+
+So, on the right we have the CNN that we want to understand. In the diagram, I often also show the activations that flow between layers, anything in dotted lines are activations, anything not dotted are layers.
+
+You can see that I copy the activations before the last layer of the CNN (since 2 lines flow out of it) and one of the copies goes into the sparse autoencoder (SAE).
+
+> What is that SAE doing there?
+
+Anthropic claims that the elements of activations can be made less polysemantic when you encode them with a SAE.
+
+> What is polysemanticity and why would we care?
+
+Polysemanticity is the property of an activation to encode multiple meanings in the same place.  
+Neural networks need to deal with a lot of features, that is, properties  of the data point that are relevant to keep track of for the task that the network optimizes for.  
+But, only a small subset of all features in the data set, are present in a single data point.
+Having a neuron per feature would be inefficient and the network is better off with having the same neurons do suit different purposes in different contexts.
+
+A famous example is the fact that one later layer in the GoogLeNet vision model has a neuron that fires on cat faces and car doors, so that is 2 features in a single neuron. The explanation is that the rest of the network has little trouble differentiating cats from cars, so this neuron is allowed to be confused between the two.  
+
+To elaborate on this, when the rest of the network is uncertain about whether the image is a cat or a dog, this neuron helps by firing when there is a cat face. When the network is uncertain about whether there is a house or a car, it fires on car doors.  
+The instance where the network is uncertain about whether the image is a cat or a car is so rare (since earlier neurons already successfully differentiate the two), that this particular neuron does not have to know the difference. It would only be wasteful to 1 neuron per feature in that layer.
+
+> Okay, so you convert the activation into its features.
+
+Yes, I should mention that this is an optional step though.
+
+> How so?
+
+Well, the success of the SAE is not thoroughly tested yet. Plausibly it decomposes activations into their features, but there is no guarantee that those features are then more interpretable.
+
+We can also not encode the activations, and work with that. I'll keep calling these copied activations that may or may not have been encoded "features" though.
+
+> Okay, so what are you then doing with these features? You seem to feed them into the "UNET" at some halfway point.
+
+Yes, the U-NET is the network used for diffusion, where diffusion is that process famous for generating images.
+
+When training a diffusion model, we sample an image from a data set, add noise to it and feed it into the U-NET. The task of the U-NET then, is to predict what part of its input is noise, and what part is image.  
+We call it "noise prediction" since the U-NET needs to output the noise.
+
+> How does noise prediction lead to image generation?
+
+Now, what we can do with a trained U-NET, is to pass complete noise into it, and it then predicts which part of that was noise. It will not output the exact same image, since during it's training it's used to receiving input that is part image, part noise. So it outputs noise that is similar, but not completely identical to the input.
+
+We _subtract_ this noise then from the input and feed it into the U-NET again. And we repeat this process for 400 steps.
+
+> So, at the 400th step, the input looks like an image from the dataset?
+
+Exactly, now that is normal diffusion. What you are more familiar with is _conditional diffusion_. With conditional diffusion, we feed some information about the image into the U-NET at some midway point.
+
+The most-used applications of diffusion (Stable Diffusion, DALL-E, Midjourney) do this with text.
+During training, they take an image and its caption, they tokenize and embed the caption into some array and then multiply this array with the activations of the U-NET at some midway point in the U-NET, while the U-NET is looking at some noisy version of the image.
+
+The U-NET uses this new information, since this information tells the U-NET what kind of image it should generate: not just any image from the training set, but the specific image that would have this caption.
+
+> Okay, so instead of feeding it text embeddings, you feed it the CNN's features?
+
+Yes. The image that the CNN got, is copied and made noisy, so the U-NET is looking at a noisy version of the same image. Then, at the midpoint, the U-NET receives the activations from the CNN, so it can further steer its generation based on the information the CNN's features provide.
+
+> Ooo-kay, so now you have diffusion model that can generate images based on the CNN's features.
+
+When we feed the CNN some image and get those features, and then have the diffusion model generate an image while conditioning it on those features, the diffusion model generates an image that is very close to the image that the CNN got. So, this part works.
+
+> How does this help with interpreting the CNN?
+
+The U-NET, now has some understanding of the CNN's features.
+
+> Okay
+
+So what we can do now, is edit those features and see what kind of image the diffusion model generates.
+
+Then, by doing various edits on various parts of the features, we might learn what purposes individual features suit.
+:::
+
+::: {.column width=40% .sticky-chunk}
+
+![](../res/tech-stack-light.png){.lightbox fig-align="right"}
+
+:::
+
+::::
