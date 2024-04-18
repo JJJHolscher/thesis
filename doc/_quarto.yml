@@ -16,6 +16,12 @@ project:
     ]
   post-render: "../cmd/quarto.sh post-render"
 
+format:
+  html:
+    theme:
+      dark: darkly
+      light: flatly
+
 website:
   sidebar:
     search: false
