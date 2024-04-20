@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/elbo.html",
       "/experiments.html",
       "/introduction.html",
       "/methodology.html",

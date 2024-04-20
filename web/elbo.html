@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>index</title>
+<title>elbo</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -30,8 +30,6 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -70,35 +68,6 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
-
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-title','listing-author','listing-image','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-title","listing-author","listing-image","listing-description"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
 
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -180,149 +149,89 @@ window.Quarto = {
 
 
 
+<section id="elbo" class="level1">
+<h1>ELBO</h1>
+<p>This project works with diffusion models, which seem to sort-of do the same thing as variational auto-encoders do. They model some kind of data distribution.</p>
+<p>For <em>some</em> reason, VAEs cannot directly optimize themselves to maximize the P(distribution). (What is P(distribution)?) but optimize for some lower bound.</p>
+<p>Why? This ELBO keeps coming up and I will need to write about the theoretical foundations of my thesis at some point, so let’s just dig into it.</p>
+<section id="how-we-got-here" class="level2">
+<h2 class="anchored" data-anchor-id="how-we-got-here">how we got here</h2>
+<p>I’m likely going to use OpenAI’s ImageNet models, so I was reading the paper. Not that I need to for using them (probably), but if I’m going to use their models, I should cite their paper. It seems appropriate to read it then, and it might make it easier for me to then alter parts of the model since I will need to do that.</p>
+<p>Here it is. https://arxiv.org/abs/2102.09672</p>
+<p>Now, <a href="https://memex.social/a/mPj6CR2ymansKC3HGXsy">here</a> they reference the Variational Lower Bound, which google tells me is another way of saying “Evidence Lower Bound” (ELBo).</p>
+</section>
+<section id="sidestepping-to-calculus-101" class="level2">
+<h2 class="anchored" data-anchor-id="sidestepping-to-calculus-101">sidestepping to calculus 101</h2>
+<p><a href="http://paulrubenstein.co.uk/deriving-the-variational-lower-bound/">Paul Rubenstein’s blog post</a> seems to derive the ELBO nicely for us. But I got distracted by the very common practice of <a href="https://memex.social/a/OkLP7uieI6yi0ZUJGekI">optimizing for the log of the function instead of the function itself</a>. I trust it’s legal to do, but lets go beyond trust this time.</p>
+<p>I wanted to find out whether the derivative of log(x) is proportional to that of x. I forgot what the derivative of that was, so I derived it myself.</p>
+<p><embed src="../res/derivative-of-the-log.pdf" class="img-fluid"></p>
+<p>I gave up and <a href="https://www.cuemath.com/calculus/derivative-of-ln-x/">peeked</a>. There I was surprised:</p>
+<p><span class="math inline">\(\lim_{t → 0}(1 + t)^{1/t} = e\)</span>?</p>
+<section id="the-binomial-theorem" class="level3">
+<h3 class="anchored" data-anchor-id="the-binomial-theorem">the binomial theorem</h3>
+<p>Some <a href="https://youtu.be/3Wb0jPhuRco">video</a> (don’t watch it yet). Immediately mentions the Binomial Theorem.</p>
+<p>Apparently, someone found a general formula for finding the coefficients of <span class="math inline">\((a + b)^x\)</span> after it is expanded. Here expanding means, you remove the parenthesis and write the entire thing out. <a href="https://en.wikipedia.org/wiki/Binomial_coefficient">Wikipedia’s summary</a> was very helpful here.</p>
+<p>Apparently <span class="math inline">\(\binom{n}{k}\)</span> means, “give the <span class="math inline">\(k\)</span>th coefficient of the expanded form of <span class="math inline">\((a + b)^n\)</span>”. Go read the wikipedia article for more.</p>
+</section>
+<section id="deriving-eulers-number" class="level3">
+<h3 class="anchored" data-anchor-id="deriving-eulers-number">deriving Euler’s number</h3>
+<p><a href="https://artofproblemsolving.com/wiki/index.php/Euler%27s_number">This site</a> points me to the question I should have asked myself.</p>
+<p>The one thing I know about <span class="math inline">\(e\)</span> is that <span class="math inline">\(\frac{d}{dx} e^x = e^x\)</span>.</p>
+<p>So, if we get back to limits, we can find <span class="math inline">\(e\)</span> by solving <span class="math inline">\(a\)</span> for</p>
+<p><span class="math inline">\(\frac{d}{dx} a^x = \lim_{h → 0} \frac{a^{x+h} - a^x}{h} = a^x\)</span></p>
+<p>This turned out to be fairly easy:</p>
+<p><embed src="../res/eulers-number.pdf" class="img-fluid"></p>
+<p>So, yes <span class="math inline">\(\lim_{t → 0}(1 + t)^{1/t} = e\)</span></p>
+<p>Hmmm, it turns out I hadn’t needed Google. That part with the Binomial Theorem primarily was completely unnecessary.</p>
+</section>
+<section id="so-can-we-use-the-logarithm-when-calculating-the-derivative" class="level3">
+<h3 class="anchored" data-anchor-id="so-can-we-use-the-logarithm-when-calculating-the-derivative">so, can we use the logarithm when calculating the derivative?</h3>
+<p><span class="math display">\[\frac{d}{dx} \ln(f(x)) = \frac{1}{f(x)} · \frac{d}{dx} f(x)\]</span></p>
+<p>This is a factor of <span class="math inline">\(\frac{1}{f(x)}\)</span> away from <span class="math inline">\(\frac{d}{dx} f(x)\)</span>, which seems fine!<br>
+Just remember to multiply by <span class="math inline">\(f(x)\)</span> whenever you use <span class="math inline">\(\frac{d}{dx} \ln f(x)\)</span> as a substitute for <span class="math inline">\(\frac{d}{dx} f(x)\)</span>.</p>
+</section>
+</section>
+<section id="finding-the-distribution-of-a-data-set" class="level2">
+<h2 class="anchored" data-anchor-id="finding-the-distribution-of-a-data-set">finding the distribution of a data set</h2>
+<p>So, back to the blog post.<br>
+We want to find <span class="math inline">\(p(x)\)</span>, the distribution that models all points in a dataset <span class="math inline">\(x \in X\)</span> and for our generative purposes, we assume that there exists some encoding <span class="math inline">\(z\)</span> that gives our generator information on the <span class="math inline">\(x\)</span> that ought be generated.</p>
+<section id="why-the-encoding-z" class="level3">
+<h3 class="anchored" data-anchor-id="why-the-encoding-z">why the encoding “z”?</h3>
+<p>I’m uncertain, but I think <span class="math inline">\(z\)</span> is necessary due to the discreteness of our computation.</p>
+<p>We want to model <span class="math inline">\(p(x)\)</span>, not just any x. <span class="math inline">\(p(x)\)</span> is a distribution with a lot of information, you don’t get a model to output that entire distribution, you only get a model that can sample from that distribution.</p>
+<p>So, we are building a model that (approximately) samples <span class="math inline">\(p(x)\)</span>. This way, we need some index that informs our model <em>which</em> <span class="math inline">\(x\)</span> we want from <span class="math inline">\(p(x)\)</span>.</p>
+<p>And what would be extra nice, is if that index already encodes some information about the likelihood of that individual <span class="math inline">\(x\)</span>.<br>
+I mean to say, that the instruction you give to the generative model is of the form “please generate me an x, that very rare in property <span class="math inline">\(z_1, z_2\)</span> and <span class="math inline">\(z_3\)</span>, but has a very typical <span class="math inline">\(z_4\)</span>”.<br>
+So before it starts generating, we already know how typical the generated <span class="math inline">\(x\)</span> will be, or how likely we are to find points in the dataset that are similar to <span class="math inline">\(x\)</span>.</p>
+</section>
+<section id="encoding-z" class="level3">
+<h3 class="anchored" data-anchor-id="encoding-z">encoding z</h3>
+<p>So, with our z, we get:</p>
+<p><span class="math inline">\(p(x) = \int p(x|z) p(z|x) dz\)</span></p>
+<p>Where x is the data we want to model, and z is some way of encoding x.</p>
+<p>Now, if we have some model with parameters θ that can generate <span class="math inline">\(x\)</span>s from <span class="math inline">\(z\)</span>s (<span class="math inline">\(p_θ(x|z)\)</span>) then you’d think we could cleverly invert that model somehow such that we can also convert <span class="math inline">\(z\)</span>’s to <span class="math inline">\(x\)</span>’s (<span class="math inline">\(p_θ(z|x)\)</span>).</p>
+<p>Well, that’s theoretically true, but neural networks are too complex for that inversion to be feasible, so we need a separate, additional model called “the encoder” that approximates <span class="math inline">\(p(z|x)\)</span>, we’ll call it <span class="math inline">\(q_φ(z|x)\)</span>.</p>
+</section>
+<section id="the-elbo-is-in-another-blog-post" class="level3">
+<h3 class="anchored" data-anchor-id="the-elbo-is-in-another-blog-post">the ELBO is in another blog post</h3>
+<p>Now, we don’t actually do away with <span class="math inline">\(p(z|x)\)</span> just yet, but using some foresight, we rewrite <span class="math inline">\(p(x)\)</span> as:</p>
+<p><span class="math display">\[
+p(x) = \int p(x|z) p(z|x) \frac{q(z|x)}{q(z|x)}dz  
+\]</span> <span class="math display">\[
+\ln p(x) = \ln \int p(x|z) p(z|x) \frac{q(z|x)}{q(z|x)}dz
+\]</span></p>
+<p>Then… you should just read <a href="http://paulrubenstein.co.uk/deriving-the-variational-lower-bound/">Paul Rubenstein’s blog post</a> it’s shorter than this. He goes over the rest of the math to get to ELBO, but that looks understandable to me.</p>
+<p>I could re-write them here, but then I’d be pretending to have done mental work I haven’t. I’d just by copy-pasting.</p>
+<p>If you don’t want to go there, then the main point is that you can separate <span class="math inline">\(p(z|x)\)</span> out of the rest of the above formula into a part that guaranteed to be positive or 0.<br>
+You ignore that part, and optimize for the rest, which is the ELBO.</p>
+<p>The main thing I still want to understand is Jensen’s Inequality, which I might add here later.</p>
 
 
+</section>
+</section>
+</section>
 
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-listing-file-modified-sort="1713614487904" data-listing-reading-time-sort="2" data-listing-word-count-sort="242">
-<div class="thumbnail">
-<p><a href="./elbo.html" class="no-external"></a></p><a href="./elbo.html" class="no-external">
-<!-- img(9CEB782EFEE6)[progressive=false, height=]:elbo.html -->
-</a><p><a href="./elbo.html" class="no-external"></a></p>
-</div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./elbo.html" class="no-external">ELBO</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./elbo.html" class="no-external"></a>
-</div>
-<div class="listing-description">
-<a href="./elbo.html" class="no-external"><!-- desc(5A0113B34292)[max=175]:elbo.html --></a>
-</div>
-</div>
-<div class="metadata">
-<p><a href="./elbo.html" class="no-external"></a></p><a href="./elbo.html" class="no-external">
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-listing-file-modified-sort="1712237551143" data-listing-reading-time-sort="5" data-listing-word-count-sort="895">
-<div class="thumbnail">
-<p><a href="./experiments.html" class="no-external"></a></p><a href="./experiments.html" class="no-external">
-<!-- img(9CEB782EFEE6)[progressive=false, height=]:experiments.html -->
-</a><p><a href="./experiments.html" class="no-external"></a></p>
-</div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./experiments.html" class="no-external">Experiments</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./experiments.html" class="no-external"></a>
-</div>
-<div class="listing-description">
-<a href="./experiments.html" class="no-external"><!-- desc(5A0113B34292)[max=175]:experiments.html --></a>
-</div>
-</div>
-<div class="metadata">
-<p><a href="./experiments.html" class="no-external"></a></p><a href="./experiments.html" class="no-external">
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="2" data-listing-file-modified-sort="1712324449807" data-listing-reading-time-sort="1" data-listing-word-count-sort="1">
-<div class="thumbnail">
-<p><a href="./introduction.html" class="no-external"></a></p><a href="./introduction.html" class="no-external">
-<!-- img(9CEB782EFEE6)[progressive=false, height=]:introduction.html -->
-</a><p><a href="./introduction.html" class="no-external"></a></p>
-</div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./introduction.html" class="no-external">Introduction</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./introduction.html" class="no-external"></a>
-</div>
-<div class="listing-description">
-<a href="./introduction.html" class="no-external"><!-- desc(5A0113B34292)[max=175]:introduction.html --></a>
-</div>
-</div>
-<div class="metadata">
-<p><a href="./introduction.html" class="no-external"></a></p><a href="./introduction.html" class="no-external">
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="3" data-listing-file-modified-sort="1712222638653" data-listing-reading-time-sort="1" data-listing-word-count-sort="9">
-<div class="thumbnail">
-<p><a href="./methodology.html" class="no-external"></a></p><a href="./methodology.html" class="no-external">
-<!-- img(9CEB782EFEE6)[progressive=false, height=]:methodology.html -->
-</a><p><a href="./methodology.html" class="no-external"></a></p>
-</div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./methodology.html" class="no-external">Methodology</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./methodology.html" class="no-external"></a>
-</div>
-<div class="listing-description">
-<a href="./methodology.html" class="no-external"><!-- desc(5A0113B34292)[max=175]:methodology.html --></a>
-</div>
-</div>
-<div class="metadata">
-<p><a href="./methodology.html" class="no-external"></a></p><a href="./methodology.html" class="no-external">
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="4" data-listing-file-modified-sort="1712483915400" data-listing-reading-time-sort="1" data-listing-word-count-sort="1">
-<div class="thumbnail">
-<p><a href="./results.html" class="no-external"></a></p><a href="./results.html" class="no-external">
-<!-- img(9CEB782EFEE6)[progressive=false, height=]:results.html -->
-</a><p><a href="./results.html" class="no-external"></a></p>
-</div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./results.html" class="no-external">Results</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./results.html" class="no-external"></a>
-</div>
-<div class="listing-description">
-<a href="./results.html" class="no-external"><!-- desc(5A0113B34292)[max=175]:results.html --></a>
-</div>
-</div>
-<div class="metadata">
-<p><a href="./results.html" class="no-external"></a></p><a href="./results.html" class="no-external">
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="5" data-listing-file-modified-sort="1713457877813" data-listing-reading-time-sort="8" data-listing-word-count-sort="1531">
-<div class="thumbnail">
-<p><a href="./tech-stack.html" class="no-external"></a></p><a href="./tech-stack.html" class="no-external">
-<!-- img(9CEB782EFEE6)[progressive=false, height=]:tech-stack.html -->
-</a><p><a href="./tech-stack.html" class="no-external"></a></p>
-</div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./tech-stack.html" class="no-external">Tech Stack Q&amp;A</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./tech-stack.html" class="no-external"></a>
-</div>
-<div class="listing-description">
-<a href="./tech-stack.html" class="no-external"><!-- desc(5A0113B34292)[max=175]:tech-stack.html --></a>
-</div>
-</div>
-<div class="metadata">
-<p><a href="./tech-stack.html" class="no-external"></a></p><a href="./tech-stack.html" class="no-external">
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">
-No matching items
-</div>
-</div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
