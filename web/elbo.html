@@ -201,14 +201,19 @@ We want to find <span class="math inline">\(p(x)\)</span>, the distribution that
 <p>We want to model <span class="math inline">\(p(x)\)</span>, not just any x. <span class="math inline">\(p(x)\)</span> is a distribution with a lot of information, you don’t get a model to output that entire distribution, you only get a model that can sample from that distribution.</p>
 <p>So, we are building a model that (approximately) samples <span class="math inline">\(p(x)\)</span>. This way, we need some index that informs our model <em>which</em> <span class="math inline">\(x\)</span> we want from <span class="math inline">\(p(x)\)</span>.</p>
 <p>And what would be extra nice, is if that index already encodes some information about the likelihood of that individual <span class="math inline">\(x\)</span>.<br>
-I mean to say, that the instruction you give to the generative model is of the form “please generate me an x, that very rare in property <span class="math inline">\(z_1, z_2\)</span> and <span class="math inline">\(z_3\)</span>, but has a very typical <span class="math inline">\(z_4\)</span>”.<br>
-So before it starts generating, we already know how typical the generated <span class="math inline">\(x\)</span> will be, or how likely we are to find points in the dataset that are similar to <span class="math inline">\(x\)</span>.</p>
+I mean to say, that the instruction you give to the generative model is of the form:</p>
+<blockquote class="blockquote">
+<p>please generate me an x, that is rare with regards to property <span class="math inline">\(z_1, z_2\)</span> and <span class="math inline">\(z_3\)</span>, but has a very typical <span class="math inline">\(z_4\)</span>.</p>
+</blockquote>
+<p>So before it starts generating, we already know how typical the generated <span class="math inline">\(x\)</span> will be, or how likely we are to find points in the dataset that are similar to <span class="math inline">\(x\)</span>.</p>
+<p>This is done by having <span class="math inline">\(z\)</span> be from a known distribution, <del>always</del> usually by sampling <span class="math inline">\(z \sim \mathcal{N}(0; \textbf{I})\)</span>. So, you know when the absolute <span class="math inline">\(z_i\)</span> is large, the generated <span class="math inline">\(x\)</span> will be unlikely with respect to the ith element.</p>
+<p>Finally, let it be known that <span class="math inline">\(z\)</span> is not some interpretable variable. <span class="math inline">\(z\)</span> contains information about <span class="math inline">\(x\)</span>, but only the model knows how to use that.</p>
 </section>
-<section id="encoding-z" class="level3">
-<h3 class="anchored" data-anchor-id="encoding-z">encoding z</h3>
+<section id="getting-z-from-x" class="level3">
+<h3 class="anchored" data-anchor-id="getting-z-from-x">getting z from x</h3>
 <p>So, with our z, we get:</p>
 <p><span class="math inline">\(p(x) = \int p(x|z) p(z|x) dz\)</span></p>
-<p>Where x is the data we want to model, and z is some way of encoding x.</p>
+<p>Where x is the data we want to model, and z is some encoding of x.</p>
 <p>Now, if we have some model with parameters θ that can generate <span class="math inline">\(x\)</span>s from <span class="math inline">\(z\)</span>s (<span class="math inline">\(p_θ(x|z)\)</span>) then you’d think we could cleverly invert that model somehow such that we can also convert <span class="math inline">\(z\)</span>’s to <span class="math inline">\(x\)</span>’s (<span class="math inline">\(p_θ(z|x)\)</span>).</p>
 <p>Well, that’s theoretically true, but neural networks are too complex for that inversion to be feasible, so we need a separate, additional model called “the encoder” that approximates <span class="math inline">\(p(z|x)\)</span>, we’ll call it <span class="math inline">\(q_φ(z|x)\)</span>.</p>
 </section>

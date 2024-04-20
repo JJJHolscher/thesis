@@ -79,16 +79,23 @@ We want to model $p(x)$, not just any x. $p(x)$ is a distribution with a lot of 
 So, we are building a model that (approximately) samples $p(x)$. This way, we need some index that informs our model _which_ $x$ we want from $p(x)$.
 
 And what would be extra nice, is if that index already encodes some information about the likelihood of that individual $x$.  
-I mean to say, that the instruction you give to the generative model is of the form "please generate me an x, that very rare in property $z_1, z_2$ and $z_3$, but has a very typical $z_4$".  
+I mean to say, that the instruction you give to the generative model is of the form:
+
+> please generate me an x, that is rare with regards to property $z_1, z_2$ and $z_3$, but has a very typical $z_4$.
+
 So before it starts generating, we already know how typical the generated $x$ will be, or how likely we are to find points in the dataset that are similar to $x$.
 
-### encoding z
+This is done by having $z$ be from a known distribution, ~~always~~ usually by sampling $z \sim \mathcal{N}(0; \textbf{I})$. So, you know when the absolute $z_i$ is large, the generated $x$ will be unlikely with respect to the ith element.
+
+Finally, let it be known that $z$ is not some interpretable variable. $z$ contains information about $x$, but only the model knows how to use that.
+
+### getting z from x
 
 So, with our z, we get:
 
 $p(x) = \int p(x|z) p(z|x) dz$
 
-Where x is the data we want to model, and z is some way of encoding x.
+Where x is the data we want to model, and z is some encoding of x.
 
 Now, if we have some model with parameters θ that can generate $x$s from $z$s ($p_θ(x|z)$) then you'd think we could cleverly invert that model somehow such that we can also convert $z$'s to $x$'s ($p_θ(z|x)$).
 
